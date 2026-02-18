@@ -19,20 +19,16 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # Build and run using docker-compose
       - name: Build and Run Worker via Compose
         run: |
-          # If compose.yaml is in worker/, adjust path: -f worker/compose.yaml
-          docker-compose -f compose.yaml build
-          docker-compose -f compose.yaml up -d
+          docker compose -f worker/compose.yaml build
+          docker compose -f worker/compose.yaml up -d
 
-      # Optional: run tests or commands inside the worker container
       - name: Execute commands inside worker
         run: |
-          docker-compose -f compose.yaml exec -T worker echo "Worker is running"
+          docker compose -f worker/compose.yaml exec -T worker echo "Worker is running"
 
-      # Cleanup
       - name: Stop and remove containers
         if: always()
         run: |
-          docker-compose -f compose.yaml down
+          docker compose -f worker/compose.yaml down
