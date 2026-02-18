@@ -1,34 +1,42 @@
-name: Run Worker Docker
+name: Build and Run Worker
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   pull_request:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   docker-worker:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
+      # 1. Checkout the repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # 2. Set up Docker Buildx (for advanced builds)
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and Run Worker via Compose
+      # 3. Ensure docker compose CLI is available
+      - name: Install Docker Compose CLI
         run: |
-          docker compose -f worker/compose.yaml build
-          docker compose -f worker/compose.yaml up -d
+          sudo apt-get update
+          sudo apt-get install -y docker-compose-plugin
 
-      - name: Execute commands inside worker
+      # 4. Build and run worker service
+      - name: Build and run worker
         run: |
-          docker compose -f worker/compose.yaml exec -T worker echo "Worker is running"
+          # Navigate to repo root
+          cd $GITHUB_WORKSPACE
 
-      - name: Stop and remove containers
-        if: always()
-        run: |
-          docker compose -f worker/compose.yaml down
+          # Build docker image if needed
+          docker compose -f worker/compose.yml build
+
+          # Start services in detached mode
+          docker compose -f worker/compose.yml up -d
+
+      # Optional: list running containers
+      - name: List running containers
+        run: docker ps
